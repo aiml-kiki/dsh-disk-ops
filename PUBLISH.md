@@ -119,6 +119,13 @@ https://cdn.jsdelivr.net/npm/dsh-plugin-catalog/index.json
 
 模板文件：`market/awesome-dsh-plugin.yml`。把 `OWNER` 换成你的 GitHub 用户名后提交 PR 即可。
 
+## 当前发布状态（0.1.0）
+
+- GitHub：<https://github.com/aiml-kiki/dsh-disk-ops>（main，topics 已加）
+- Release：<https://github.com/aiml-kiki/dsh-disk-ops/releases/tag/v0.1.0>，资产 `dsh-disk-ops-0.1.0.tgz`
+- npm：待 `npm login` 后执行 `node scripts/publish.mjs --publish`
+- 社区目录：仓库创建未满 1 天，满 1 天后提交 `market/awesome-dsh-plugin.yml`
+
 ## 发布后验证
 
 1. 在一个干净 profile 里装 registry 版，确认 Plugin Manager 显示「磁盘空间 / Disk Space」与图标（en/zh 各看一次）。

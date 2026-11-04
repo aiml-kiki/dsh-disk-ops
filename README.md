@@ -1,6 +1,6 @@
 # dsh-disk-ops
 
-DSH Desktop 的本机磁盘空间插件：**一个面板回答三个问题** —— 空间去哪了、能清什么、清了安全吗。命令与 agent 工具是辅助入口。
+DSH Desktop 的本机磁盘空间插件（[aiml-kiki/dsh-disk-ops](https://github.com/aiml-kiki/dsh-disk-ops)）：**一个面板回答三个问题** —— 空间去哪了、能清什么、清了安全吗。命令与 agent 工具是辅助入口。
 
 ![面板：家目录](docs/home.png)
 
@@ -28,6 +28,12 @@ plugin_manager install_bundle target="$PWD"
 ```
 
 已安装同版本时先 `remove_bundle` 再 `install_bundle`；Client 改动需要刷新一次页面。
+GitHub Release 安装（当前可用）：
+
+```text
+plugin_manager install_bundle target="https://github.com/aiml-kiki/dsh-disk-ops/releases/download/v0.1.0/dsh-disk-ops-0.1.0.tgz"
+```
+
 发布版（npm registry）安装：
 
 ```text

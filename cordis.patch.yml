@@ -1,0 +1,7 @@
+# Published bundle patch: resolve the plugin by package name.
+# Local development regenerates this file with a file:// dist URL via
+# scripts/install.mjs --dist.
+- insert:
+    - id: dsh-disk-ops
+      name: dsh-disk-ops
+      config: {}

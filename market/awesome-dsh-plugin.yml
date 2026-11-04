@@ -1,0 +1,11 @@
+# Template for https://github.com/awesome-dsh-plugin/awesome-dsh-plugin.
+# Save as data/plugins/<owner>__<repo>.yml in that repository (one file per PR).
+# Replace aiml-kiki/REPO, then open the pull request. Do not edit the generated READMEs.
+url: https://github.com/aiml-kiki/dsh-disk-ops
+name: aiml-kiki/dsh-disk-ops
+category: tools
+description:
+  en: Treemap disk inspection with linked cleanup suggestions, a reviewed trash plan, and an audit log for macOS.
+  zh: 用树图查看 macOS 磁盘占用，联动可清理建议并在确认计划后移入废纸篓，全程可审计。
+# GitHub-hosted raster only (PNG/JPEG/WebP); SVG is rejected by the catalog.
+icon: https://raw.githubusercontent.com/aiml-kiki/dsh-disk-ops/main/assets/icon-512.png

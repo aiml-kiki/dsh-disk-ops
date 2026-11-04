@@ -1,0 +1,75 @@
+{
+  "format": 1,
+  "metadata": {
+    "categories": {
+      "disk": {
+        "title": {
+          "en": "Disk & storage",
+          "zh": "磁盘与存储"
+        }
+      }
+    },
+    "labels": {
+      "macos": {
+        "title": {
+          "en": "macOS",
+          "zh": "macOS"
+        }
+      }
+    },
+    "sortKeys": {
+      "updated": {
+        "title": {
+          "en": "Updated",
+          "zh": "更新"
+        },
+        "order": "desc"
+      }
+    }
+  },
+  "plugins": [
+    {
+      "name": "dsh-disk-ops",
+      "title": {
+        "en": "Disk Space",
+        "zh": "磁盘空间"
+      },
+      "description": {
+        "en": "Visualize disk usage with a treemap and reclaim macOS caches through a reviewed plan inside DeepSeek Harness.",
+        "zh": "用树图查看磁盘占用，按可清理建议生成计划并确认后移入废纸篓。仅支持 macOS。"
+      },
+      "author": "dsh-disk-ops contributors",
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IkRpc2sgU3BhY2UiPgogIDxkZWZzPgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJwbGF0ZSIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiM1YjhjYjgiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjM2Y2Zjk2Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KICA8cmVjdCB4PSI0IiB5PSI0IiB3aWR0aD0iNTYiIGhlaWdodD0iNTYiIHJ4PSIxNCIgZmlsbD0idXJsKCNwbGF0ZSkiLz4KICA8ZWxsaXBzZSBjeD0iMzIiIGN5PSIyNSIgcng9IjE3IiByeT0iNyIgZmlsbD0iI2Y3ZmFmYyIgb3BhY2l0eT0iLjk1Ii8+CiAgPHBhdGggZD0iTTE1IDI1djE3YzAgMy45IDcuNiA3IDE3IDdzMTctMy4xIDE3LTdWMjVjMCAzLjktNy42IDctMTcgN3MtMTctMy4xLTE3LTdaIiBmaWxsPSIjZjdmYWZjIiBvcGFjaXR5PSIuODIiLz4KICA8cGF0aCBkPSJNMTUgMzNjMCAzLjkgNy42IDcgMTcgN3MxNy0zLjEgMTctNyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjM2Y2Zjk2IiBzdHJva2Utd2lkdGg9IjIuNCIgb3BhY2l0eT0iLjU1Ii8+CiAgPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iNC42IiBmaWxsPSIjM2Y2Zjk2IiBvcGFjaXR5PSIuNzUiLz4KPC9zdmc+Cg==",
+      "metadata": {
+        "category": "disk",
+        "keywords": [
+          "dsh-plugin",
+          "dsh-bundle",
+          "disk",
+          "cleanup",
+          "storage",
+          "macos",
+          "treemap"
+        ],
+        "labels": [
+          "macos"
+        ],
+        "sortKeys": {
+          "updated": 1793813774
+        }
+      },
+      "versions": [
+        {
+          "version": "0.1.0",
+          "publishTimestamp": 1793813774,
+          "source": {
+            "type": "npm"
+          },
+          "engines": {
+            "dsh": ">=0.2.1-rc.2"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+# Changelog
+
+## 0.1.0 — 2026-11-05
+
+- 面板：树图 + 大文件联动；建议支持「当前层 / 全部」、搜索、悬浮高亮、`↗` 定位。
+- 布局：工具栏横跨全宽，树图与建议卡顶边对齐；大文件移到树图下方，两列底边对齐；动作条移到建议列表上方，清理按钮始终可见。
+- 数据：缓存优先 + 后台刷新；`stale` 标记；Big files 支持 `path` 范围。
+- 隐私：TCC 目录（Containers / Group Containers / Mail / Safari）只统计不展开，不触发系统授权弹窗。
+- 修复：BSD `du -d 1` 不列普通文件，导致纯文件目录树图为空；改用 `lstat` 分配块大小并加回归测试。
+- 发布：`files` / `exports` / locale / 原创 icon / `engines.dsh` / 平台声明；新增 `scripts/publish.mjs`、`scripts/market-index.mjs`、format 1 市场索引；24 个 `node --test` 用例。

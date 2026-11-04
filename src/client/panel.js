@@ -126,6 +126,9 @@ function DiskPanel() {
   var filterState = React.useState('all');
   var filter = filterState[0];
   var setFilter = filterState[1];
+  var kindState = React.useState('all');
+  var kindFilter = kindState[0];
+  var setKindFilter = kindState[1];
   var scopeState = React.useState('all');
   var sugScope = scopeState[0];
   var setSugScope = scopeState[1];
@@ -206,7 +209,7 @@ function DiskPanel() {
   }, [current]);
 
   React.useEffect(function () {
-    setSugScope(current === null ? 'all' : 'here');
+    setSugScope('here');
     setBigScope(current === null ? 'home' : 'here');
     setQuery('');
     setHoverKey('');
@@ -324,7 +327,13 @@ function DiskPanel() {
     var next = {};
     Object.keys(selected).forEach(function (key) { next[key] = selected[key]; });
     if (next[item.path]) delete next[item.path];
-    else next[item.path] = { path: item.path, size: typeof item.size === 'number' ? item.size : 0 };
+    else next[item.path] = {
+      path: item.path,
+      size: typeof item.size === 'number' ? item.size : 0,
+      manual: item.kind === 'entry'
+        ? item.manual !== false
+        : !(item.action === 'trash' && item.deletable !== false && item.size !== null),
+    };
     setSelected(next);
     setPlan(null);
   }
@@ -336,9 +345,11 @@ function DiskPanel() {
   function selectSafe() {
     var next = {};
     scopeItems.forEach(function (item) {
-      if (item.safety === 'safe' && item.action === 'trash' && item.deletable !== false && item.size !== null) {
-        next[item.path] = { path: item.path, size: item.size };
-      }
+      var eligible = item.kind === 'entry'
+        ? item.safety === 'safe' && item.manual !== true && typeof item.size === 'number'
+        : item.safety === 'safe' && item.action === 'trash' && item.deletable !== false && item.size !== null;
+      if (!eligible) return;
+      next[item.path] = { path: item.path, size: item.size, manual: item.kind === 'entry' ? item.manual === true : false };
     });
     setSelected(next);
     setPlan(null);
@@ -354,7 +365,8 @@ function DiskPanel() {
     if (items.length === 0) return;
     setBusy('plan');
     setNotice('');
-    jpost('/disk-ops/plan', { items: items })
+    var manual = items.some(function (item) { return item.manual === true; });
+    jpost('/disk-ops/plan', { items: items, manual: manual })
       .then(function (data) {
         if (data && data.ok) {
           setPlan(data.plan);
@@ -364,6 +376,27 @@ function DiskPanel() {
         }
       })
       .catch(function (problem) { setNotice('生成计划失败：' + problem); })
+      .finally(function () { setBusy(''); });
+  }
+
+  function manualPlan(entry) {
+    if (!entry || typeof entry.path !== 'string' || entry.restricted === true) return;
+    setBusy('plan');
+    setNotice('');
+    jpost('/disk-ops/plan', {
+      manual: true,
+      items: [{ path: entry.path, size: typeof entry.size === 'number' ? entry.size : undefined }],
+    })
+      .then(function (data) {
+        var next = data && data.plan;
+        if (data && data.ok && next && next.items.length > 0) {
+          setPlan(next);
+        } else {
+          var reason = next && next.skipped && next.skipped[0] ? next.skipped[0].reason : '路径受保护或不可读';
+          setNotice('无法删除：' + ((data && (data.error || data.reason)) || reason));
+        }
+      })
+      .catch(function (problem) { setNotice('无法删除：' + problem); })
       .finally(function () { setBusy(''); });
   }
 
@@ -424,22 +457,45 @@ function DiskPanel() {
     else cautionSum += item.size;
   });
 
-  var hereItems = current === null ? [] : suggestionList.filter(function (item) {
-    return item.path.indexOf(current + '/') === 0;
-  });
-  var scopeItems = (current !== null && sugScope === 'here') ? hereItems : suggestionList;
-  var scopeReclaim = scopeItems.reduce(function (sum, item) {
-    return sum + (item.action === 'trash' && item.deletable !== false && typeof item.size === 'number' ? item.size : 0);
-  }, 0);
-  var queryLower = query.trim().toLowerCase();
-  var visible = scopeItems.filter(function (item) {
-    if (filter !== 'all' && item.safety !== filter) return false;
-    if (queryLower === '') return true;
-    return (item.category + ' ' + item.path).toLowerCase().indexOf(queryLower) !== -1;
-  });
   var ruleByPath = {};
   suggestionList.forEach(function (item) { if (item.size !== null) ruleByPath[item.path] = item; });
   var safetyLabel = { safe: '安全', probably: '谨慎', risky: '只报告', irreversible: '不可逆' };
+
+  var levelItems = entries
+    .filter(function (entry) { return typeof entry.size === 'number' && entry.size > 0 && entry.restricted !== true; })
+    .map(function (entry) {
+      var rule = ruleByPath[entry.path];
+      return {
+        kind: 'entry',
+        path: entry.path,
+        name: entry.name,
+        size: entry.size,
+        is_dir: entry.is_dir,
+        safety: rule ? rule.safety : '',
+        category: rule ? rule.category : '',
+        manual: !(rule !== undefined && rule.action === 'trash' && rule.deletable !== false),
+      };
+    });
+
+  var scopeItems = sugScope === 'here' ? levelItems : suggestionList;
+  var queryLower = query.trim().toLowerCase();
+  var visible = scopeItems.filter(function (item) {
+    if (sugScope === 'here') {
+      if (kindFilter === 'dir' && item.is_dir !== true) return false;
+      if (kindFilter === 'file' && item.is_dir === true) return false;
+    } else if (filter !== 'all' && item.safety !== filter) {
+      return false;
+    }
+    if (queryLower === '') return true;
+    return ((item.category || '') + ' ' + item.path + ' ' + (item.name || '')).toLowerCase().indexOf(queryLower) !== -1;
+  });
+
+  var dirCount = levelItems.filter(function (item) { return item.is_dir === true; }).length;
+  var fileCount = levelItems.length - dirCount;
+  var hereReclaim = levelItems.reduce(function (sum, item) {
+    return sum + (item.safety !== '' && item.manual !== true ? item.size : 0);
+  }, 0);
+  var activeFilter = sugScope === 'here' ? kindFilter : filter;
 
   // Which cell on the current level owns this suggestion? Hovering a row
   // lights up that block, so the list and the map read as one surface.
@@ -512,6 +568,15 @@ function DiskPanel() {
         rect.w > 70 && rect.h > 54
           ? h('text', { x: rect.x + 9, y: rect.y + 36, className: 'dsh-disk-cell-size' }, formatBytes(entry.size))
           : null,
+        !entry.restricted && entry.size > 0 && rect.w > 120 && rect.h > 70
+          ? h('g', {
+              className: 'dsh-disk-cell-del',
+              onClick: function (event) { event.stopPropagation(); manualPlan(entry); },
+            },
+              h('circle', { cx: rect.x + rect.w - 18, cy: rect.y + 18, r: 11 }),
+              h('text', { x: rect.x + rect.w - 18, y: rect.y + 23, 'text-anchor': 'middle', className: 'dsh-disk-del-x' }, '×'),
+            )
+          : null,
       );
     }));
   }
@@ -550,27 +615,39 @@ function DiskPanel() {
       : null,
   ];
 
-  var filters = [
-    { id: 'all', label: '全部' },
-    { id: 'safe', label: '安全' },
-    { id: 'probably', label: '谨慎' },
-  ];
+  var filters = sugScope === 'here'
+    ? [
+        { id: 'all', label: '全部' },
+        { id: 'dir', label: '文件夹' },
+        { id: 'file', label: '文件' },
+      ]
+    : [
+        { id: 'all', label: '全部' },
+        { id: 'safe', label: '安全' },
+        { id: 'probably', label: '谨慎' },
+      ];
+
   var suggestionRows = visible.map(function (item) {
-    var canDelete = item.action === 'trash' && item.deletable !== false && item.size !== null;
-    var checked = canDelete && selected[item.path] !== undefined;
+    var isEntry = item.kind === 'entry';
+    var checked = selected[item.path] !== undefined;
+    var tag = item.safety === '' ? '' : (safetyLabel[item.safety] || item.safety);
+    var label = isEntry ? item.name : suggestionTitle(item);
+    var pathLabel = isEntry ? (item.is_dir === true ? '文件夹' : '文件') : truncatePath(item.path, 44);
     return h('div', {
-      className: 'dsh-disk-suggestion' + (checked ? ' dsh-disk-suggestion-on' : '') + (canDelete ? '' : ' dsh-disk-suggestion-locked'),
-      key: item.id + item.path,
-      onClick: function () { if (canDelete) toggle(item); },
+      className: 'dsh-disk-suggestion' + (checked ? ' dsh-disk-suggestion-on' : ''),
+      key: (isEntry ? 'e:' : 's:') + item.path,
+      onClick: function () { toggle(item); },
       onMouseEnter: function () { setHoverKey(item.path); },
       onMouseLeave: function () { setHoverKey(''); },
       title: item.path + (item.note ? ' · ' + item.note : ''),
     },
       h('span', { className: 'dsh-disk-check' + (checked ? ' dsh-disk-check-on' : ''), 'aria-hidden': 'true' }, checked ? '✓' : ''),
-      h('span', { className: 'dsh-disk-dot', style: { background: SAFETY_COLOR[item.safety] || 'gray' } }),
-      h('span', { className: 'dsh-disk-sug-cat' }, suggestionTitle(item)),
+      h('span', { className: 'dsh-disk-dot', style: { background: SAFETY_COLOR[item.safety] || (isEntry ? 'transparent' : 'gray') } }),
+      h('span', { className: 'dsh-disk-sug-cat' },
+        (isEntry ? (item.is_dir === true ? '▸ ' : '· ') : '') + label),
+      tag !== '' ? h('span', { className: 'dsh-disk-tag dsh-disk-tag-' + item.safety }, tag) : null,
       h('span', { className: 'dsh-disk-sug-size' }, item.size === null ? '—' : formatBytes(item.size)),
-      h('span', { className: 'dsh-disk-sug-path' }, truncatePath(item.path, 44)),
+      h('span', { className: 'dsh-disk-sug-path' }, pathLabel),
       h('button', {
         className: 'dsh-disk-locate',
         type: 'button',
@@ -582,6 +659,7 @@ function DiskPanel() {
 
   var selectedList = selectedItems();
   var selectedTotal = selectedList.reduce(function (sum, item) { return sum + (item.size || 0); }, 0);
+  var anyManual = selectedList.some(function (item) { return item.manual === true; });
   var visiblePaths = {};
   visible.forEach(function (item) { visiblePaths[item.path] = true; });
   var hiddenSelection = selectedList.filter(function (item) { return visiblePaths[item.path] !== true; }).length;
@@ -590,7 +668,7 @@ function DiskPanel() {
     ? h('div', { className: 'dsh-disk-actionbar' },
         h('div', { className: 'dsh-disk-selection' },
           selectedList.length === 0
-            ? h('span', { className: 'dsh-disk-dim' }, '勾选建议项后可清理')
+            ? h('span', { className: 'dsh-disk-dim' }, '勾选文件夹或文件后可删除')
             : h('span', { className: hiddenSelection > 0 ? 'dsh-disk-selection-warn' : '' },
                 selectedList.length + ' 项 · ' + formatBytes(selectedTotal) +
                 (hiddenSelection > 0 ? '（' + hiddenSelection + ' 项不在当前筛选）' : '')),
@@ -603,50 +681,67 @@ function DiskPanel() {
           type: 'button',
           disabled: selectedList.length === 0 || busy !== '',
           onClick: startPlan,
-        }, busy === 'plan' ? '生成计划…' : '清理'),
+        }, busy === 'plan' ? '生成计划…' : (anyManual ? '删除' : '清理')),
       )
     : h('div', { className: 'dsh-disk-confirm' },
-        h('div', { className: 'dsh-disk-confirm-title' }, '将清理 ' + plan.items.length + ' 项 · ' + formatBytes(plan.total)),
-        h('div', { className: 'dsh-disk-confirm-sub' }, '移入废纸篓，可在 Finder 中放回；计划 10 分钟内有效。'),
+        h('div', { className: 'dsh-disk-confirm-title' },
+          (plan.manual === true ? '手动删除 ' : '将清理 ') + plan.items.length + ' 项 · ' + formatBytes(plan.total)),
+        plan.manual === true && plan.items[0]
+          ? h('div', { className: 'dsh-disk-confirm-path' }, truncatePath(plan.items[0].path, 58))
+          : null,
+        h('div', { className: 'dsh-disk-confirm-sub' },
+          plan.manual === true
+            ? '不在清理规则内；移入废纸篓后可在 Finder 中放回。'
+            : '移入废纸篓，可在 Finder 中放回；计划 10 分钟内有效。'),
         h('div', { className: 'dsh-disk-confirm-actions' },
           h('button', { className: 'dsh-disk-primary', type: 'button', disabled: busy !== '', onClick: confirmPlan },
-            busy === 'clean' ? '清理中…' : '确认'),
+            busy === 'clean' ? '删除中…' : '确认删除'),
           h('button', { className: 'dsh-disk-ghost', type: 'button', onClick: function () { setPlan(null); } }, '取消'),
         ),
       );
 
-  var right = h('div', { className: 'dsh-disk-right' + (suggestionList.length === 0 ? ' dsh-disk-right-empty' : '') },
+  var right = h('div', { className: 'dsh-disk-right' + (scopeItems.length === 0 ? ' dsh-disk-right-empty' : '') },
     h('div', { className: 'dsh-disk-panel-head' },
       h('div', null,
-        h('div', { className: 'dsh-disk-panel-title' }, '可清理建议'),
+        h('div', { className: 'dsh-disk-panel-title' }, sugScope === 'here' ? '当前目录' : '可清理建议'),
         h('div', { className: 'dsh-disk-panel-sub' },
-          formatBytes(reclaim) + ' 可回收 · 安全 ' + formatBytes(safeSum) + ' · 谨慎 ' + formatBytes(cautionSum)),
+          sugScope === 'here'
+            ? dirCount + ' 个文件夹 · ' + fileCount + ' 个文件 · ' +
+              (hereReclaim > 0 ? '可清理 ' + formatBytes(hereReclaim) : '没有可清理项')
+            : formatBytes(reclaim) + ' 可回收 · 安全 ' + formatBytes(safeSum) + ' · 谨慎 ' + formatBytes(cautionSum)),
       ),
     ),
-    current !== null && suggestionList.length > 0
-      ? h('div', { className: 'dsh-disk-scope' },
-          h('button', {
-            type: 'button',
-            className: 'dsh-disk-scope-btn' + (sugScope === 'here' ? ' dsh-disk-scope-on' : ''),
-            onClick: function () { setSugScope('here'); },
-          }, '当前层 ' + hereItems.length),
-          h('button', {
-            type: 'button',
-            className: 'dsh-disk-scope-btn' + (sugScope === 'all' ? ' dsh-disk-scope-on' : ''),
-            onClick: function () { setSugScope('all'); },
-          }, '全部 ' + suggestionList.length),
-        )
-      : null,
-    suggestionList.length > 0 ? h('div', { className: 'dsh-disk-filters' }, filters.map(function (item) {
-      var count = scopeItems.filter(function (s) { return item.id === 'all' || s.safety === item.id; }).length;
+    h('div', { className: 'dsh-disk-scope' },
+      h('button', {
+        type: 'button',
+        className: 'dsh-disk-scope-btn' + (sugScope === 'here' ? ' dsh-disk-scope-on' : ''),
+        onClick: function () { setSugScope('here'); },
+      }, '当前层 ' + levelItems.length),
+      h('button', {
+        type: 'button',
+        className: 'dsh-disk-scope-btn' + (sugScope === 'all' ? ' dsh-disk-scope-on' : ''),
+        onClick: function () { setSugScope('all'); },
+      }, '全部建议 ' + suggestionList.length),
+    ),
+    scopeItems.length > 0 ? h('div', { className: 'dsh-disk-filters' }, filters.map(function (item) {
+      var count = sugScope === 'here'
+        ? levelItems.filter(function (s) {
+            if (item.id === 'all') return true;
+            if (item.id === 'dir') return s.is_dir === true;
+            return s.is_dir !== true;
+          }).length
+        : suggestionList.filter(function (s) { return item.id === 'all' || s.safety === item.id; }).length;
       return h('button', {
         key: item.id,
         type: 'button',
-        className: 'dsh-disk-chip' + (filter === item.id ? ' dsh-disk-chip-on' : ''),
-        onClick: function () { setFilter(item.id); },
+        className: 'dsh-disk-chip' + (activeFilter === item.id ? ' dsh-disk-chip-on' : ''),
+        onClick: function () {
+          if (sugScope === 'here') setKindFilter(item.id);
+          else setFilter(item.id);
+        },
       }, item.label + ' ' + count);
     })) : null,
-    suggestionList.length > 5
+    scopeItems.length > 5
       ? h('input', {
           ref: searchRef,
           className: 'dsh-disk-search',
@@ -660,11 +755,12 @@ function DiskPanel() {
     notice !== '' ? h('div', { className: 'dsh-disk-notice' }, notice) : null,
     suggestionRows.length === 0
       ? h('div', { className: 'dsh-disk-empty' },
-          suggestions === null ? '正在匹配规则…'
-            : (suggestionList.length === 0 ? '没有命中清理规则的可回收项'
-              : (sugScope === 'here' && hereItems.length === 0 ? '当前层没有命中规则的项' : '没有匹配项')),
-          sugScope === 'here' && hereItems.length === 0
-            ? h('button', { className: 'dsh-disk-link', type: 'button', onClick: function () { setSugScope('all'); } }, '看全部')
+          sugScope === 'here'
+            ? (levelItems.length === 0 ? '这一层没有可显示的项目' : '没有匹配项')
+            : (suggestions === null ? '正在匹配规则…'
+              : (suggestionList.length === 0 ? '没有命中清理规则的可回收项' : '没有匹配项')),
+          sugScope === 'here' && levelItems.length === 0
+            ? h('button', { className: 'dsh-disk-link', type: 'button', onClick: function () { setSugScope('all'); } }, '看全部建议')
             : null,
         )
       : h('div', { className: 'dsh-disk-suggestions' }, suggestionRows),
@@ -678,6 +774,12 @@ function DiskPanel() {
             (current !== null && file.path.indexOf(current + '/') === 0) ? file.path.slice(current.length + 1) : file.path, 88)),
           h('button', { className: 'dsh-disk-link', type: 'button', title: '在树图中定位其父目录', onClick: function () { locate(file.path); } }, '定位'),
           h('button', { className: 'dsh-disk-link', type: 'button', onClick: function () { reveal(file.path); } }, '显示'),
+          h('button', {
+            className: 'dsh-disk-link dsh-disk-danger',
+            type: 'button',
+            title: '移入废纸篓',
+            onClick: function () { manualPlan({ path: file.path, size: file.size }); },
+          }, '删除'),
         );
       })
     : [];
@@ -737,7 +839,8 @@ function DiskPanel() {
       h('div', { className: 'dsh-disk-tip-hint' },
         tip.entry.restricted === true
           ? '受 macOS 隐私保护，不可展开'
-          : (tip.entry.is_dir ? '单击下钻 · 双击在 Finder 中显示' : '双击在 Finder 中显示')),
+          : (tip.entry.is_dir ? '单击下钻 · 双击在 Finder 中显示' : '双击在 Finder 中显示') +
+            (tip.entry.size > 0 && tip.entry.restricted !== true ? ' · 右上角 × 删除' : '')),
     ) : null,
     h('div', { className: 'dsh-disk-foot' },
       '体积按实际占用块计；父子目录不重复累加；缓存优先、后台刷新。',

@@ -8,7 +8,7 @@ DSH Desktop 的本机磁盘空间插件（[aiml-kiki/dsh-disk-ops](https://githu
 
 - 左侧栏「磁盘空间」图标 → 全宽主面板；兜底入口：设置 → 磁盘空间。
 - treemap 面积即占用；**悬浮看路径与占比，单击下钻，双击在 Finder 中显示**；面包屑或 `Esc` 返回。
-- 左侧树图下方接大文件 Top 10；右侧建议列通高对齐，按 `安全 / 谨慎` 过滤，支持「选中全部安全项」；清理走 **计划 → 内联确认 → 移入废纸篓**，默认可放回。
+- 左侧树图下方接大文件 Top 10；右侧**跟随当前目录**：列出本层文件夹与文件，命中规则的才打「安全/谨慎」tag；可勾选任意项，清理走 **计划 → 内联确认 → 移入废纸篓**，默认可放回。
 - 缓存优先、后台刷新：打开即有画面，过期数据在后台更新，不空屏等 `du`。
 - 数据联动：建议、树图、大文件共享同一个当前位置，而不是三个互不相干的列表。
 - 只读权限：不申请全盘访问、永不 `sudo`；`~/Library/Containers` 等 TCC 目录显示体积但**不展开**，不会弹系统授权框。
@@ -31,7 +31,7 @@ plugin_manager install_bundle target="$PWD"
 GitHub Release 安装（当前可用）：
 
 ```text
-plugin_manager install_bundle target="https://github.com/aiml-kiki/dsh-disk-ops/releases/download/v0.1.1/dsh-disk-ops-0.1.1.tgz"
+plugin_manager install_bundle target="https://github.com/aiml-kiki/dsh-disk-ops/releases/download/v0.1.2/dsh-disk-ops-0.1.2.tgz"
 ```
 
 发布版（npm registry）安装：
@@ -73,7 +73,8 @@ agent 侧：`disk_scan`（只读）、`disk_clean`（`plan` → `commit`，commi
 | 悬浮建议行 | 高亮它在当前层的所属色块 | 树图与列表像同一块数据 |
 | 点击建议行 | 勾选/取消 | 行高亮、底部合计随选更新 |
 | 建议行「↗」 | 跳到该项父目录并高亮 | 深层缓存也能一眼定位 |
-| 范围：当前层 / 全部 | 建议只显示当前目录下的项 | 切层自动回到「当前层」 |
+| 范围：当前层 / 全部建议 | 当前层列出目录与文件；全部建议是全局规则表 | 切层自动回到当前层 |
+| 点击文件夹/文件行 | 勾选；带 tag 的项走规则计划，无 tag 的走手动计划 | 底部合计与「删除/清理」按钮随选更新 |
 | 搜索框（按 `/` 聚焦） | 按名称/路径过滤建议 | 选中项被过滤掉时提示「n 项不在当前筛选」 |
 | 「选中全部安全项」 | 一次选中当前范围里所有 `safe` 可删项 | 显示 `n 项 · X GB` |
 | 清理 | 只生成计划，不删除 | 内联卡片：条目数、总大小、10 分钟有效 |

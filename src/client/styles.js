@@ -117,8 +117,8 @@ export const STYLES = `
 }
 .dsh-disk-suggestion {
   display: grid;
-  grid-template-columns: 16px 8px minmax(0, 1fr) auto 14px;
-  grid-template-areas: 'check dot cat size locate' '. . path path path';
+  grid-template-columns: 16px 8px minmax(0, 1fr) auto auto 14px;
+  grid-template-areas: 'check dot cat tag size locate' '. . path path path path';
   gap: 2px 8px;
   padding: 6px 5px;
   border-radius: 7px;
@@ -199,7 +199,7 @@ export const STYLES = `
 .dsh-disk-big-list { display: flex; flex-direction: column; }
 .dsh-disk-big-row {
   display: grid;
-  grid-template-columns: 74px minmax(0, 1fr) auto auto;
+  grid-template-columns: 74px minmax(0, 1fr) auto auto auto;
   gap: 10px; align-items: baseline;
   padding: 4px 0;
   border-bottom: 1px dashed var(--dsh-disk-line);
@@ -306,6 +306,23 @@ export const STYLES = `
 .dsh-disk-suggestion:hover .dsh-disk-locate { opacity: .45; }
 .dsh-disk-locate:hover { opacity: 1; }
 .dsh-disk-tip-rule { font-size: 10px; color: #8fd6a8; }
+.dsh-disk-tag {
+  font-size: 9.5px; line-height: 1; padding: 3px 5px; border-radius: 5px;
+  background: var(--dsh-disk-soft); opacity: .8; white-space: nowrap;
+}
+.dsh-disk-tag-safe { color: #3f9b6d; background: rgba(63,155,109,.1); }
+.dsh-disk-tag-probably { color: #b47a2a; background: rgba(180,122,42,.1); }
+.dsh-disk-tag-risky { color: #b35a5a; background: rgba(179,90,90,.1); }
+.dsh-disk-cell-del { opacity: 0; cursor: pointer; transition: opacity .12s ease; }
+.dsh-disk-cell:hover .dsh-disk-cell-del { opacity: .9; }
+.dsh-disk-cell-del circle { fill: rgba(20,24,30,.42); }
+.dsh-disk-del-x { fill: #fff; font-size: 14px; font-weight: 600; pointer-events: none; }
+.dsh-disk-danger { color: #c25a5a; opacity: .75; }
+.dsh-disk-danger:hover { opacity: 1; }
+.dsh-disk-confirm-path {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px; opacity: .55; word-break: break-all;
+}
 .dsh-disk-bottom-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
 .dsh-disk-bottom-head .dsh-disk-scope { flex: 0 0 128px; }
 .dsh-disk-empty .dsh-disk-link { margin-left: 6px; }

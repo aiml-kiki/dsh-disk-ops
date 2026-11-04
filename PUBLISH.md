@@ -61,10 +61,10 @@ node scripts/publish.mjs           # 构建 + 24 个测试 + 打包 + 校验
 
 `scripts/publish.mjs` 会失败于：patch 里出现 `file://` 或仓库绝对路径、缺 `dsh.bundle/client`、缺 locale/icon、icon 超 256 KiB、client id 与包名不一致、tarball 里出现 `dist/`。
 
-产物：`build/dsh-disk-ops-0.1.1.tgz`。可先本地装这个 tarball 验证：
+产物：`build/dsh-disk-ops-0.1.2.tgz`。可先本地装这个 tarball 验证：
 
 ```text
-plugin_manager install_bundle target="$PWD/build/dsh-disk-ops-0.1.1.tgz"
+plugin_manager install_bundle target="$PWD/build/dsh-disk-ops-0.1.2.tgz"
 ```
 
 ## 上传 npm
@@ -119,10 +119,10 @@ https://cdn.jsdelivr.net/npm/dsh-plugin-catalog/index.json
 
 模板文件：`market/awesome-dsh-plugin.yml`。把 `OWNER` 换成你的 GitHub 用户名后提交 PR 即可。
 
-## 当前发布状态（0.1.1）
+## 当前发布状态（0.1.2）
 
 - GitHub：<https://github.com/aiml-kiki/dsh-disk-ops>（main，topics 已加）
-- Release：<https://github.com/aiml-kiki/dsh-disk-ops/releases/tag/v0.1.1>，资产 `dsh-disk-ops-0.1.1.tgz`
+- Release：<https://github.com/aiml-kiki/dsh-disk-ops/releases/tag/v0.1.2>，资产 `dsh-disk-ops-0.1.2.tgz`
 - npm：待 `npm login` 后执行 `node scripts/publish.mjs --publish`
 - 社区目录：仓库创建未满 1 天，满 1 天后提交 `market/awesome-dsh-plugin.yml`
 

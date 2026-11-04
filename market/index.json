@@ -55,13 +55,13 @@
           "macos"
         ],
         "sortKeys": {
-          "updated": 1793813774
+          "updated": 1793817210
         }
       },
       "versions": [
         {
-          "version": "0.1.0",
-          "publishTimestamp": 1793813774,
+          "version": "0.1.1",
+          "publishTimestamp": 1793817210,
           "source": {
             "type": "npm"
           },

@@ -53,3 +53,23 @@ test('expired plan is refused', async () => {
   assert.equal(verifyPlan(expired, plan.token).ok, false);
   await rm(fixtureRoot, { recursive: true, force: true });
 });
+
+test('manual plan accepts an uncovered path as risky', async () => {
+  const dir = join(fixtureRoot, 'manual');
+  await mkdir(dir, { recursive: true });
+  await writeFile(join(dir, 'a.bin'), 'x');
+
+  const plan = await createPlan([{ path: dir, size: 1 }], { policy, rules: [], manual: true });
+  assert.equal(plan.manual, true);
+  assert.equal(plan.items.length, 1);
+  assert.equal(plan.items[0].rule_id, 'manual');
+  assert.equal(plan.items[0].safety, 'risky');
+
+  const protectedPlan = await createPlan([{ path: dir }], {
+    policy: { roots: [fixtureRoot], protected: [dir] },
+    rules: [],
+    manual: true,
+  });
+  assert.equal(protectedPlan.items.length, 0);
+  await rm(fixtureRoot, { recursive: true, force: true });
+});

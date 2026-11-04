@@ -31,7 +31,7 @@ plugin_manager install_bundle target="$PWD"
 GitHub Release 安装（当前可用）：
 
 ```text
-plugin_manager install_bundle target="https://github.com/aiml-kiki/dsh-disk-ops/releases/download/v0.1.0/dsh-disk-ops-0.1.0.tgz"
+plugin_manager install_bundle target="https://github.com/aiml-kiki/dsh-disk-ops/releases/download/v0.1.1/dsh-disk-ops-0.1.1.tgz"
 ```
 
 发布版（npm registry）安装：
@@ -67,6 +67,8 @@ agent 侧：`disk_scan`（只读）、`disk_clean`（`plan` → `commit`，commi
 | 悬浮色块 | 路径、大小、占本层比例；有规则时给「可清理」或「含可清理 n 项」 | 跟随光标的浮层 |
 | 单击目录 | 下钻一层 | 面包屑增长；扫描中旧图变暗并提示；状态栏显示「本层 X GB」 |
 | 双击目录/文件 | `open -R` 在 Finder 中显示 | — |
+| 色块右上角 `×` | 对当前色块发起**手动删除**计划 | 计划卡显示路径、大小与「不在规则内」提示 |
+| 大文件行的「删除」 | 对单个文件发起手动删除计划 | 同样先计划、再确认 |
 | `Esc` / ← / 面包屑 | 返回上层（`Esc` 先清搜索词） | 返回按钮在根层禁用 |
 | 悬浮建议行 | 高亮它在当前层的所属色块 | 树图与列表像同一块数据 |
 | 点击建议行 | 勾选/取消 | 行高亮、底部合计随选更新 |
@@ -76,6 +78,7 @@ agent 侧：`disk_scan`（只读）、`disk_clean`（`plan` → `commit`，commi
 | 「选中全部安全项」 | 一次选中当前范围里所有 `safe` 可删项 | 显示 `n 项 · X GB` |
 | 清理 | 只生成计划，不删除 | 内联卡片：条目数、总大小、10 分钟有效 |
 | 确认 | 逐条复核 inode/size/mtime 后移入废纸篓 | 结果提示；审计追加 |
+| 取消 | 放弃本次手动/规则计划 | 不动任何文件 |
 | 刷新 | `refresh=1` 重扫当前层 | `更新中…`，旧图保留 |
 | 大文件：当前层 / 全盘 | 只列当前目录下或全家的 >100MB 文件 | 相对路径 + 「定位 / 显示」 |
 

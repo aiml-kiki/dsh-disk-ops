@@ -72,7 +72,7 @@ plugin_manager install_bundle target="$PWD/build/dsh-disk-ops-0.1.2.tgz"
 ```bash
 npm login
 node scripts/publish.mjs --publish
-# 可选：--tag next / --registry https://registry.npmjs.org
+# 可选：--tag next / --registry https://registry.npmjs.org / --otp 123456
 ```
 
 用户安装：

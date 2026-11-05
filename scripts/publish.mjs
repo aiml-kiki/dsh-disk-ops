@@ -7,6 +7,7 @@
  *   ... --skip-tests                     # skip node --test
  *   ... --tag next                       # dist-tag for npm publish
  *   ... --registry https://registry.npmjs.org
+ *   ... --otp 123456                   # npm 2FA one-time password
  *
  * The repository copy of cordis.patch.yml points at dist/<rev>/ for local
  * development (install.mjs). The published package must instead resolve the
@@ -31,6 +32,7 @@ const skipTests = flag('--skip-tests');
 const publish = flag('--publish');
 const tag = value('--tag');
 const registry = value('--registry');
+const otp = value('--otp');
 const stage = join(root, 'build', 'publish');
 
 function run(command, args, options = {}) {
@@ -139,7 +141,7 @@ process.stdout.write([
 ].join('\n'));
 
 if (publish) {
-  run('npm', ['publish', tarball, '--access', 'public', ...npmFlags, ...(tag ? ['--tag', tag] : [])], { cwd: stage });
+  run('npm', ['publish', tarball, '--access', 'public', ...npmFlags, ...(tag ? ['--tag', tag] : []), ...(otp ? ['--otp', otp] : [])], { cwd: stage });
   process.stdout.write(`published ${display}\n`);
 } else {
   process.stdout.write('Not published. Re-run with --publish (npm login first), or publish the tarball manually.\n');
